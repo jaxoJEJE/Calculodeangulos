@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="300" height="300" style="border:solid 1px black"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+
+        const medidaCuadrado = 15;
+        const colorLineaAngulos = "black";
+        const fuenteMedidas = "bold 20px arial";
+
+        var cuadrados = [{
+            x: 150,
+            y: 50,
+            width: medidaCuadrado,
+            height: medidaCuadrado,
+            color: 'rgb(0,0,255,0.4)'
+        }, {
+            x: 50,
+            y: 100,
+            width: medidaCuadrado,
+            height: medidaCuadrado,
+            color: 'rgb(255,0,0,0.4)'
+        }, {
+            x: 150,
+            y: 150,
+            width: medidaCuadrado,
+            height: medidaCuadrado,
+            color: 'rgb(0,255,0,0.4)'
+        }]
+
+        cuadradoActual = null
+        var xo = 0,
+            yo = 0;
+
+
+
+        redibujado()
+
+        canvas.addEventListener("mousedown", tomar);
+        canvas.addEventListener("mousemove", mover);
+        canvas.addEventListener("mouseup", soltar);
+
+
+
+        function angulos(x1, x2, x3, y1, y2, y3) {
+            var dx1 = x1 - x2
+            var dy1 = y1 - y2
+            var dx2 = x3 - x2
+            var dy2 = y3 - y2
+            var t1 = Math.atan2(dy1, dx1);
+            var t2 = Math.atan2(dy2, dx2);
+            dibujarArco(t1, t2, "cyan   ", 0.5, true);
+            dibujarArco(t1, t2, "pink", 0.5, false);
+            return parseInt((t2 - t1) * 180 / Math.PI + 360) % 360;
+        }
+
+        function dibujarArco(t1, t2, color, transparencia, lado) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cuadrados[1].x + medidaCuadrado / 2, cuadrados[1].y + medidaCuadrado / 2);
+            ctx.arc(cuadrados[1].x, cuadrados[1].y, 50, t1, t2, lado);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = transparencia;
+            ctx.fill();
+            ctx.restore();
+        }
+
+
+
+
+
+        function redibujado() {
+            ctx.font = fuenteMedidas;
+            const distanciaDelCentroX = cuadrados[1].x + 25;
+            const distanciaDelCentroY = cuadrados[1].y + 15
+            ctx.clearRect(0, 0, ctx.canvas.offsetWidth, ctx.canvas.offsetHeight);
+            var anguloActualRojo = angulos(cuadrados[0].x, cuadrados[1].x, cuadrados[2].x, cuadrados[0].y, cuadrados[1].y, cuadrados[2].y);
+            var anguloActualAzul = 360 - anguloActualRojo
+            ctx.fillStyle = "red";
+            ctx.fillText(anguloActualRojo + "°", distanciaDelCentroX, distanciaDelCentroY);
+            ctx.fillStyle = "blue";
+            ctx.fillText(anguloActualAzul + "°", distanciaDelCentroX - 60, distanciaDelCentroY)
+
+
+            for (var i in cuadrados) {
+
+                ctx.fillStyle = cuadrados[i].color;
+                ctx.fillRect(cuadrados[i].x, cuadrados[i].y, cuadrados[i].width, cuadrados[i].height);
+
+
+            }
+            for (var i in cuadrados) {
+                var indice = parseInt(i, 10)
+                var mitadCuadrado = medidaCuadrado / 2
+
+                if (indice != 2) {
+                    var siguiente = indice + 1;
+                    dibujarLinea(colorLineaAngulos, cuadrados[i].x + mitadCuadrado, cuadrados[i].y + mitadCuadrado, cuadrados[siguiente].x + mitadCuadrado, cuadrados[siguiente].y + mitadCuadrado, ctx)
+                }
+            }
+
+
+        }
+
+        function dibujarLinea(color, xo, yo, xi, yi, lienzo) {
+            lienzo.beginPath();
+            lienzo.strokeStyle = color;
+            lienzo.moveTo(xo, yo);
+            lienzo.lineTo(xi, yi);
+            lienzo.stroke();
+            lienzo.closePath();
+
+        }
+
+        function tomar(e) {
+            for (var i in cuadrados) {
+                var anchuraCuadrado = cuadrados[i].width + cuadrados[i].x
+                var alturaCuadrado = cuadrados[i].height + cuadrados[i].y
+
+                if (cuadrados[i].x < e.x && anchuraCuadrado > e.x && cuadrados[i].y < e.y && alturaCuadrado > e.y) {
+
+                    cuadradoActual = cuadrados[i];
+                    yo = e.y - cuadrados[i].y;
+                    xo = e.x - cuadrados[i].x;
+                }
+            }
+        }
+
+        function mover(e) {
+            if (cuadradoActual != null) {
+                cuadradoActual.x = e.x - xo;
+                cuadradoActual.y = e.y - yo;
+                redibujado();
+            }
+
+        }
+
+        function soltar() {
+            cuadradoActual = null;
+        }
+    </script>
+</body>
+
+</html>
